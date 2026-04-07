@@ -5,8 +5,10 @@ export default function OrderScreen({
   selectedOptionsByMenu,
   cartItems,
   totalPrice,
+  isSubmittingOrder,
   onToggleOption,
   onAddToCart,
+  onPlaceOrder,
 }) {
   return (
     <main className="content">
@@ -40,8 +42,9 @@ export default function OrderScreen({
                 type="button"
                 className="primary-button add-button"
                 onClick={() => onAddToCart(item)}
+                disabled={(item.stockQuantity ?? 0) <= 0}
               >
-                담기
+                {(item.stockQuantity ?? 0) <= 0 ? '품절' : '담기'}
               </button>
             </article>
           )
@@ -81,9 +84,10 @@ export default function OrderScreen({
             <button
               type="button"
               className="primary-button order-button"
-              disabled={cartItems.length === 0}
+              disabled={cartItems.length === 0 || isSubmittingOrder}
+              onClick={onPlaceOrder}
             >
-              주문하기
+              {isSubmittingOrder ? '주문 처리 중...' : '주문하기'}
             </button>
           </div>
         </div>

@@ -4,11 +4,24 @@ function getDatabaseUrl() {
   return process.env.DATABASE_URL
 }
 
-const pool = new Pool({
-  get connectionString() {
-    return getDatabaseUrl()
-  },
-})
+let pool
+
+async function query(text, params = []) {
+  return getPool().query(text, params)
+}
+
+function getPool() {
+  if (!pool) {
+    const databaseUrl = getDatabaseUrl()
+    if (!databaseUrl) {
+      throw new Error('DATABASE_URL is not set')
+    }
+    pool = new Pool({
+      connectionString: databaseUrl,
+    })
+  }
+  return pool
+}
 
 async function testDbConnection() {
   const databaseUrl = getDatabaseUrl()
@@ -16,7 +29,7 @@ async function testDbConnection() {
     throw new Error('DATABASE_URL is not set')
   }
 
-  const client = await pool.connect()
+  const client = await getPool().connect()
   try {
     await client.query('SELECT 1')
   } finally {
@@ -25,6 +38,7 @@ async function testDbConnection() {
 }
 
 module.exports = {
-  pool,
+  getPool,
+  query,
   testDbConnection,
 }

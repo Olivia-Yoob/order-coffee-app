@@ -19,6 +19,11 @@ function getInventoryStatusClass(stock) {
   return 'normal'
 }
 
+function getDisplayStatus(status) {
+  if (status === '완료') return '제조 완료'
+  return status
+}
+
 export default function AdminScreen({
   menuItems,
   inventoryByMenu,
@@ -97,7 +102,7 @@ export default function AdminScreen({
               <p className="admin-order-time">{dateTimeFormat.format(order.createdAt)}</p>
               <p className="admin-order-menu">{order.menuName}</p>
               <p className="admin-order-amount">{moneyFormat.format(order.amount)}원</p>
-              <p className="admin-order-status">{order.status}</p>
+              <p className="admin-order-status">{getDisplayStatus(order.status)}</p>
               {order.status === '주문 접수' ? (
                 <button
                   type="button"
@@ -116,7 +121,7 @@ export default function AdminScreen({
                   제조 완료
                 </button>
               ) : null}
-              {order.status === '제조 완료' ? (
+              {order.status === '완료' ? (
                 <span className="admin-order-action-placeholder done">완료</span>
               ) : null}
             </li>
