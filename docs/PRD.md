@@ -164,3 +164,153 @@ Vertical stack of modules below the global header:
 4. **주문 현황** lists orders with time, summary, KRW amount, and **주문 접수** (or equivalent primary action) wired to status updates.
 5. Advancing an order updates the dashboard breakdown (주문 접수 / 제조 중 / 제조 완료) without stale numbers.
 
+## 6. Backend PRD
+
+### 6.1 Purpose
+The backend provides menu/option/order data to the frontend, persists orders, updates inventory after checkout, and supports admin operations for order status transitions.
+
+### 6.2 Data Models
+
+#### 6.2.1 Menus
+Represents coffee products shown on Ordering/Admin screens.
+
+| Field | Type | Constraints / Notes |
+|--------|------|---------------------|
+| `id` | UUID (PK) | Server-generated unique identifier |
+| `name` | VARCHAR | Coffee name (e.g., 아메리카노(ICE), 카페라떼) |
+| `description` | TEXT | Product description |
+| `price` | INTEGER | Base price in KRW (non-negative) |
+| `image_url` | TEXT | Image path or public URL |
+| `stock_quantity` | INTEGER | Current inventory count (`>= 0`) |
+| `is_active` | BOOLEAN | Soft visibility flag for menu listing |
+| `created_at` | TIMESTAMP | Created time |
+| `updated_at` | TIMESTAMP | Updated time |
+
+#### 6.2.2 Options
+Represents option metadata and relation to one or more menus.
+
+| Field | Type | Constraints / Notes |
+|--------|------|---------------------|
+| `id` | UUID (PK) | Server-generated unique identifier |
+| `name` | VARCHAR | Option name (e.g., 샷 추가, 시럽 추가) |
+| `price` | INTEGER | Option price in KRW (can be 0) |
+| `created_at` | TIMESTAMP | Created time |
+| `updated_at` | TIMESTAMP | Updated time |
+
+**Menu-Option relation** (recommended):
+- `menu_options` join table
+  - `menu_id` (FK -> `menus.id`)
+  - `option_id` (FK -> `options.id`)
+  - composite unique key: (`menu_id`, `option_id`)
+
+#### 6.2.3 Orders
+Represents customer checkout records.
+
+| Field | Type | Constraints / Notes |
+|--------|------|---------------------|
+| `id` | UUID (PK) | Server-generated unique identifier |
+| `ordered_at` | TIMESTAMP | Order placed time |
+| `status` | ENUM | `주문 접수` / `제조 중` / `완료` |
+| `total_amount` | INTEGER | Sum of order line totals in KRW |
+| `created_at` | TIMESTAMP | Created time |
+| `updated_at` | TIMESTAMP | Updated time |
+
+**Order items** (for 주문 내용: 메뉴, 수량, 옵션, 금액):
+- `order_items`
+  - `id` (UUID, PK)
+  - `order_id` (FK -> `orders.id`)
+  - `menu_id` (FK -> `menus.id`)
+  - `menu_name_snapshot` (VARCHAR)
+  - `base_price_snapshot` (INTEGER)
+  - `quantity` (INTEGER, `> 0`)
+  - `line_total` (INTEGER)
+- `order_item_options`
+  - `id` (UUID, PK)
+  - `order_item_id` (FK -> `order_items.id`)
+  - `option_id` (FK -> `options.id`)
+  - `option_name_snapshot` (VARCHAR)
+  - `option_price_snapshot` (INTEGER)
+
+### 6.3 User Flow for Schema (Data Lifecycle)
+
+1. **Menus 조회 및 화면 표시**
+   - Frontend calls backend to fetch `menus` (+ `options` mapped by menu).
+   - Ordering screen shows menu name/설명/가격/이미지.
+   - Admin screen additionally shows `stock_quantity` from `menus`.
+
+2. **사용자 메뉴 선택 및 장바구니 반영**
+   - User selects menu and options in UI.
+   - Cart is maintained on frontend until checkout.
+   - Backend is not required to persist draft cart in v1.
+
+3. **주문하기 클릭 시 Orders 저장**
+   - Frontend sends checkout payload (line items, selected options, quantity).
+   - Backend validates pricing and stock, then creates:
+     - `orders` row (`ordered_at`, `status='주문 접수'`, `total_amount`)
+     - `order_items` rows
+     - `order_item_options` rows
+   - In same transaction, backend decrements `menus.stock_quantity` by ordered quantity.
+
+4. **관리자 주문 현황 표시 및 상태 변경**
+   - Admin screen reads `orders` with item summary and amount.
+   - Default status is `주문 접수`.
+   - Status transitions:
+     - `주문 접수` -> `제조 중`
+     - `제조 중` -> `완료`
+   - Dashboard counts are derived from `orders.status`.
+
+### 6.4 API Design
+
+#### 6.4.1 Menu list for Ordering screen
+- **GET** `/api/menus`
+- **Purpose:** Load coffee menu list from DB when user enters **주문하기**.
+- **Response (example):**
+  - menu id, name, description, price, image_url
+  - option list per menu (id, name, price)
+  - (optional) stock flag for sold-out handling
+
+#### 6.4.2 Create order (checkout)
+- **POST** `/api/orders`
+- **Purpose:** Save order info when user clicks **주문하기**.
+- **Request body (example shape):**
+  - `items[]` with `menu_id`, `quantity`, `option_ids[]`
+- **Server actions:**
+  1. Validate menu/option relationship and stock availability
+  2. Calculate totals server-side (do not trust client totals)
+  3. Insert into `orders`, `order_items`, `order_item_options`
+  4. Update menu inventory
+- **Response:**
+  - `order_id`, `ordered_at`, `status`, `total_amount`, ordered item summary
+
+#### 6.4.3 Update inventory based on orders
+- Inventory is updated in the **same DB transaction** as order creation.
+- If any validation or DB step fails, entire checkout is rolled back.
+
+#### 6.4.4 Get order by ID
+- **GET** `/api/orders/:orderId`
+- **Purpose:** Return detail for one order by order ID.
+- **Response includes:**
+  - order header (`id`, `ordered_at`, `status`, `total_amount`)
+  - order item lines (`menu`, `quantity`, `options`, `line_total`)
+
+#### 6.4.5 Admin order list and status transitions
+- **GET** `/api/admin/orders`
+  - Returns paginated list for 관리자 주문 현황 (newest first).
+- **PATCH** `/api/admin/orders/:orderId/status`
+  - Body: `{ "status": "제조 중" }` or `{ "status": "완료" }`
+  - Enforce valid transition sequence only.
+
+### 6.5 Backend Validation and Rules
+- `stock_quantity` cannot be negative.
+- Order quantity must be positive integer.
+- Option IDs must belong to the selected menu.
+- Price used for billing is always computed on backend from DB snapshots.
+- Status transition must be sequential (`주문 접수` -> `제조 중` -> `완료`).
+
+### 6.6 Acceptance Criteria (Backend)
+1. `GET /api/menus` returns menus/options needed for Ordering screen rendering.
+2. `POST /api/orders` creates order records and decreases stock atomically.
+3. `GET /api/orders/:orderId` returns full order detail by ID.
+4. Admin can read order list and update status through defined transition APIs.
+5. Dashboard counts can be derived reliably from order statuses in DB.
+
