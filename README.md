@@ -1,4 +1,4 @@
-# Coffee Ordering App
+# ☕️ Coffee Ordering App
 
 ## 1. Project Overview
 
