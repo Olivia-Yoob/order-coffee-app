@@ -411,6 +411,11 @@ body {
   font-size: 14px;
 }
 
+.admin-order-action-placeholder.done {
+  color: #0f766e;
+  font-weight: 700;
+}
+
 @media (max-width: 900px) {
   .menu-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -425,15 +430,21 @@ body {
   }
 
   .admin-order-row {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 8px;
+    align-items: start;
   }
 
+  .admin-order-time,
+  .admin-order-menu,
   .admin-order-amount,
-  .admin-order-status,
+  .admin-order-status {
+    text-align: left;
+  }
+
   .admin-order-action,
   .admin-order-action-placeholder {
-    justify-self: end;
+    justify-self: start;
   }
 }
 
