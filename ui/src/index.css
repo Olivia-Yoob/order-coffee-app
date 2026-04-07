@@ -1,0 +1,275 @@
+:root {
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  line-height: 1.4;
+  color: #111827;
+  background: #f5f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#root {
+  width: 100%;
+}
+
+.page {
+  width: min(1020px, 100%);
+  margin: 0;
+  padding: 20px 16px 36px;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid #0f4db8;
+  background: #0f4db8;
+  padding: 10px 18px;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(15, 77, 184, 0.14);
+}
+
+.brand {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: 1px;
+  color: #ffffff;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 10px;
+}
+
+.nav-button {
+  border: 1px solid #ffffff;
+  background: #0f4db8;
+  color: #ffffff;
+  padding: 7px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+}
+
+.nav-button.active {
+  background: #ffffff;
+  color: #0f4db8;
+}
+
+.content {
+  margin-top: 22px;
+  display: grid;
+  gap: 22px;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.menu-card {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  padding: 12px 12px 14px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
+}
+
+.menu-image {
+  width: 100%;
+  aspect-ratio: 2.1 / 1;
+  border: 1px solid #9ca3af;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px;
+}
+
+.menu-name {
+  margin: 12px 0 2px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.menu-price {
+  margin: 0;
+  font-size: 21px;
+}
+
+.menu-description {
+  margin: 10px 0 8px;
+  color: #4b5563;
+  font-size: 17px;
+}
+
+.menu-options {
+  display: grid;
+  gap: 6px;
+}
+
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+}
+
+.add-button {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.cart-panel {
+  border: 1px solid #d1d5db;
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 16px 18px;
+  box-shadow: 0 8px 20px rgba(17, 24, 39, 0.07);
+}
+
+.cart-layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 24px;
+  align-items: start;
+}
+
+.cart-title {
+  margin: 0 0 10px;
+  font-size: 28px;
+}
+
+.cart-empty {
+  margin: 0;
+  color: #6b7280;
+  font-size: 18px;
+}
+
+.cart-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.cart-line {
+  display: grid;
+  grid-template-columns: 1fr 70px 130px;
+  align-items: center;
+  gap: 12px;
+}
+
+.cart-line-name {
+  margin: 0;
+  font-size: 19px;
+}
+
+.cart-quantity {
+  margin: 0;
+  font-weight: 700;
+  text-align: center;
+  font-size: 19px;
+}
+
+.cart-line-price {
+  margin: 0;
+  text-align: right;
+  font-size: 19px;
+}
+
+.cart-summary {
+  border-left: 1px solid #d1d5db;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.cart-total {
+  margin: 0;
+  font-size: 24px;
+  text-align: right;
+}
+
+.cart-total strong {
+  margin-left: 8px;
+}
+
+.primary-button {
+  border: 1px solid #0f4db8;
+  background: #0f4db8;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.primary-button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(15, 77, 184, 0.25);
+}
+
+.primary-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding-inline: 12px;
+    margin: 0 auto;
+  }
+
+  .top-nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .menu-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .cart-line {
+    grid-template-columns: 1fr auto auto;
+  }
+
+  .cart-summary {
+    border-left: none;
+    border-top: 1px solid #d1d5db;
+    padding-left: 0;
+    padding-top: 12px;
+  }
+
+}
